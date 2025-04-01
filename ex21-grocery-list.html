@@ -1,0 +1,167 @@
+<!-- IMPORTANT STEPS:
+1. Declare global variable for productArray and cartArray
+2. Document get element by id/class (depends on your preference) the product list and cart list
+2. When document is done loading
+   2.a (Separate Function) Fetch API (Async function) and Convert to JSON (Async function)
+3. Assign array of objects to productArray 
+4. Document create element for every object in productArray
+5. Design innerHTML of new element, add function/eventListener to button
+   5.a AddToCart() function, needs to pass a params to identify which item it is in productArray
+6. Append each element to productList
+7. Create AddToCart() that adds each item that calls the function into cartArray
+   7.a Retrieve data (based on its params) from productArray
+   7.b Add item into cartArray, and add a key-value pair for its quantity and totalAmount
+   7.c Let it append to cartList if new. Design innerHTML, don't forget trash/delete button that calls removeCart()
+   7.d If already existing in cartlist, only update quantity and total
+8. Create removeCart() that removes(/splice) the item from cartArray
+9. When removing or adding items into cart, always call updateCart() that updates the cartList element. -->
+
+<html>
+  <head>
+    <style>
+      * {
+        font-family: sans-serif;
+        margin: 0;
+      }
+
+      .item-card {
+        background-color: rgb(241, 241, 241);
+        border-radius: 8px;
+        height: 24vh;
+        width: 12vw;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .btn {
+        width:100%; 
+        background-color: rgb(190, 190, 190); 
+        border: 0; 
+        border-radius: 4px; 
+        padding: 0.5vh;
+        color: white;
+        font-weight: bold;
+      }
+
+      /* properties when hovering the Add to Cart button */
+      .btn:hover {
+        background-color: rgb(143, 141, 141);
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- create divs to place your items cards in -->
+    <!-- separate your Grocery and Shopping Cart divs -->
+    <div style="display: flex; flex-direction: row; width: 100%;">
+      <!-- Grocery List -->
+      <div style="width:70%; padding: 4vh 2vw;">
+        <p style="font-size: 32px; font-weight:bold; margin-bottom: 2vh;">
+          Web Dev Grocery
+        </p>
+        <div class="product-list" id="product-list" style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 2vw; justify-content: center;"></div>
+      </div>
+
+      <!-- Shopping Cart List -->
+      <div style="width:30%; padding: 4vh;">
+        <p style="font-size:24px; font-weight:bold; margin-bottom: 3vh;">Shopping Cart</p>
+        <div class="cart-list" id="cart-list"></div>
+      </div>
+    </div>
+  </body>
+  <script>
+    let productArray = [];
+    let cartArray = [];
+    let productList = document.getElementsByClassName("product-list")[0];
+    // Alternative: let productList = document.getElementById("product-list"); 
+    let cartList = document.getElementsByClassName("cart-list")[0];
+    // Alternative: let cartList = document.getElementById("cart-list");
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      // wait for fetchProducts() to return data before assigning into productArray
+      productArray = await fetchProducts();
+      
+      // for every item in productArray, create a div, design the innerHTML, then append to productList
+      productArray.forEach((product, idx) => {
+        let item = document.createElement('div');
+        item.innerHTML = `
+          <div class="item-card">
+            <div style="width: auto; height: 50%; background-color: rgb(190, 190, 190); padding: 8px;"></div>
+            <div>
+              <p style="font-weight: bold; text-transform: capitalize;">${product.name}</p>
+              <p style="font-weight: bold;">$${product.price}</p>
+            </div>
+            <input
+              type="button"
+              onClick="addToCart(${idx})"
+              class="btn"
+              value="Add to Cart"
+            ></input>
+          </div>
+        `
+        productList.appendChild(item);
+      });
+    });
+    
+    async function fetchProducts() {
+      try {
+        // async function which is why there's await keyword
+        const response = await fetch("https://mdn.github.io/learning-area/javascript/apis/fetching-data/can-store/products.json");
+        // async function which is why there's await keyword
+        productArray = await response.json();
+
+        return productArray;
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    }
+    
+    function addToCart(idx){
+      if(cartArray[idx]){
+        cartArray[idx].quantity += 1;
+        cartArray[idx].total = cartArray[idx].quantity * cartArray[idx].price;
+      } else {
+        cartArray[idx] = { 
+          ...productArray[idx], // how to add every key-value pair inside productArray[idx] into cartArray[idx]
+          quantity: 1,
+          total: productArray[idx].price // initial value is its price, so its 1 * price
+        };
+      }
+      // you may check DevTools console to see the state of cartArray
+      console.log(cartArray);
+
+      // updates the HTML inside the cartList
+      updateCart();
+    }
+
+    function updateCart(){
+      cartList.innerHTML = ''; //clears the innerHTML before updating. Try seeing how it looks without this line.
+      cartArray.forEach((product, idx) => {
+        let item = document.createElement('div');
+        item.innerHTML = `
+          <div style="display: flex; flex-direction: row; padding: 1vh 1vw; width: auto; height: auto; justify-content: space-between; margin-bottom: 0.5vh;">
+            <div>
+              <p style="text-transform: capitalize; font-weight: bold; margin: 0.4vh 0;">${product.name}<span style="margin-left: 0.3vw;">x${product.quantity}</span></p>
+              <p>$${product.price}</p>
+            </div>
+            <div>
+              <span>$${product.total.toFixed(2)}</span>
+              <input style="margin-left:2vw;" type=button onClick="removeCart(${idx})" value="x"></input>
+            </div>
+          </div>
+          <hr>
+        `
+        cartList.appendChild(item);
+      });
+    }
+
+    function removeCart(idx){
+      //.splice(), or removing the item from the array, params: index/position, num of items to remove (OPTIONAL), new items to add (OPTIONAL)  
+      cartArray.splice(idx, 1);
+      //reflects change of cartArray into cartList
+      updateCart();
+    }    
+  </script>
+</html>
