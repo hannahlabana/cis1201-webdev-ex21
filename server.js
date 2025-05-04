@@ -8,8 +8,8 @@ const port = 3000;
 
 // Database configuration
 const config = {
-    user: 'hannahlabana',
-    password: 'Maviswendy1!',
+    // user: '*********',
+    // password: '*********',
     server: 'webdev-grocery.database.windows.net',
     database: 'grocery',
     port: 1433,
